@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-25T03:31:27Z",
+  "entryCount": 374827,
+  "formCount": 523292,
+  "sources": {
+    "ecdict": "ECDICT (MIT License): Chinese coverage, phonetics and inflection data.",
+    "simpleEnglishWiktionary": "Kaikki extraction of Simple English Wiktionary (CC BY-SA / GFDL): simple English definitions and examples.",
+    "zhWiktionary": "Kaikki extraction of Chinese Wiktionary (CC BY-SA / GFDL): Chinese definition enrichment.",
+    "englishWiktionary": "Kaikki extraction of English Wiktionary (CC BY-SA / GFDL): optional IPA, form and word-family enrichment."
+  }
+}

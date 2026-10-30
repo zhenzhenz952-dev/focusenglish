@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>FocusEnglish · 随身英语</title>
+<style>
+:root{
+  --bg:#f6f7f9;--panel:#fff;--text:#15171a;--muted:#6b7280;--line:#e7e9ee;
+  --primary:#2563eb;--primary-soft:#eef4ff;--green:#178653;--green-soft:#edf9f2;
+  --orange:#d97706;--orange-soft:#fff7ed;--red:#d44747;--red-soft:#fff1f1;
+  --shadow:0 8px 28px rgba(22,29,37,.06);--radius:14px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,"PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.app{min-height:100vh;display:grid;grid-template-columns:210px minmax(0,1fr)}
+.sidebar{position:sticky;top:0;height:100vh;background:#fbfcfd;border-right:1px solid var(--line);padding:22px 14px;display:flex;flex-direction:column}
+.brand{display:flex;align-items:center;gap:10px;font-weight:750;font-size:17px;padding:0 8px 22px}
+.logo{width:30px;height:30px;border-radius:9px;background:var(--primary);color:#fff;display:grid;place-items:center;font-weight:800}
+.nav{display:flex;flex-direction:column;gap:6px}
+.nav-item{border:0;background:transparent;text-align:left;padding:11px 12px;border-radius:10px;color:#4b5563;display:block;text-decoration:none}
+.nav-item.active{background:var(--primary-soft);color:var(--primary);font-weight:650}
+.nav-item.disabled{opacity:.45}
+.sidebar-footer{margin-top:auto;padding:10px 8px;color:var(--muted);font-size:12px}
+.main{padding:26px;max-width:1480px;width:100%;margin:auto}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.crumb{font-size:14px;color:var(--muted)}
+.progress-text{font-size:14px;font-weight:650}
+.workspace{display:grid;grid-template-columns:minmax(560px,1fr) 340px;gap:18px;align-items:start}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.study-card{min-height:720px;padding:24px;display:flex;flex-direction:column}
+.study-header{display:flex;align-items:center;justify-content:space-between;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.material-title{font-size:15px;font-weight:700}
+.material-sub{font-size:12px;color:var(--muted);margin-top:3px}
+.header-actions{display:flex;align-items:center;gap:8px}
+.icon-btn,.ghost-btn,.outline-btn,.primary-btn,.state-btn{border-radius:10px;border:1px solid var(--line);background:#fff;padding:9px 12px}
+.primary-btn{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:650}
+.ghost-btn{border-color:transparent;color:var(--muted);background:transparent}
+.player{display:flex;flex-direction:column;align-items:center;padding:50px 10px 24px}
+.play-main{width:72px;height:72px;border-radius:50%;border:0;background:var(--primary);color:#fff;font-size:28px;box-shadow:0 8px 20px rgba(37,99,235,.22)}
+.player-controls{display:flex;align-items:center;gap:10px;margin-top:18px;color:var(--muted)}
+.player-controls select,.player-controls button{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 10px;color:#4b5563}
+.sentence-area{max-width:900px;width:100%;margin:0 auto;text-align:center;padding:8px 18px 20px}
+.sentence-hidden{min-height:94px;display:grid;place-items:center;color:#9ca3af;font-size:15px}
+.sentence-text{font-size:24px;line-height:1.65;font-weight:560;letter-spacing:.005em}
+.term{border-bottom:2px dotted #aab4c4;cursor:pointer;padding-bottom:1px;border-radius:3px}
+.term.known{border-bottom-color:#7aa2ff}.term.unresolved{border-bottom-color:#c5cad4}
+.term:hover{color:var(--primary);background:#f4f7ff}.term.unresolved:hover{background:#f5f6f8}
+.evidence{display:inline-flex;margin-top:10px;padding:4px 8px;background:#f5f7fb;color:#556074;border-radius:999px;font-size:12px}
+.state-section{max-width:820px;width:100%;margin:16px auto 0;border-top:1px solid var(--line);padding-top:22px}
+.state-title{text-align:center;color:var(--muted);font-size:13px;margin-bottom:12px}
+.state-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.state-btn{padding:13px 10px;font-weight:650}
+.state-btn.good{border-color:#b7e3ca;color:var(--green);background:var(--green-soft)}
+.state-btn.mid{border-color:#f0cf9c;color:var(--orange);background:var(--orange-soft)}
+.state-btn.bad{border-color:#f0b8b8;color:var(--red);background:var(--red-soft)}
+.state-btn.selected{box-shadow:inset 0 0 0 2px currentColor}
+.hint-row{max-width:820px;width:100%;margin:18px auto 0;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding-top:16px}
+.hint-text{font-size:13px;color:var(--muted)}
+.bottom-actions{margin-top:auto;border-top:1px solid var(--line);padding-top:18px;display:flex;align-items:center;justify-content:space-between}
+.nav-sentence{display:flex;gap:8px}
+.dictionary{position:sticky;top:26px;min-height:720px;padding:20px;overflow:hidden}
+.dict-empty{display:flex;min-height:620px;align-items:center;justify-content:center;text-align:center;color:var(--muted);font-size:14px;padding:28px}
+.dict-head{display:flex;align-items:flex-start;justify-content:space-between}
+.dict-title{font-size:24px;font-weight:760}
+.dict-type{font-size:12px;color:var(--muted);margin-top:3px;text-transform:uppercase}
+.star{border:0;background:transparent;font-size:23px;color:#a6afbf;padding:0}
+.star.saved{color:#f59e0b}
+.section{padding:17px 0;border-bottom:1px solid var(--line)}
+.section:last-child{border-bottom:0}
+.label{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.02em;margin-bottom:7px}
+.zh{font-size:15px;font-weight:650;line-height:1.6}
+.en{font-size:14px;line-height:1.65;color:#374151}
+.context{font-size:14px;line-height:1.65}
+.status-list{display:grid;gap:9px}
+.status{display:flex;align-items:center;justify-content:space-between;font-size:13px}
+.badge{padding:4px 8px;border-radius:999px;font-size:12px}
+.badge.rec{background:var(--green-soft);color:var(--green)}
+.badge.act{background:var(--orange-soft);color:var(--orange)}
+.badge.un{background:#f1f3f6;color:#6b7280}
+.dict-actions{display:flex;gap:8px;padding-top:16px}
+.dict-actions button{flex:1}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:#111827;color:#fff;padding:10px 14px;border-radius:9px;font-size:13px;opacity:0;pointer-events:none;transition:.18s}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (max-width:1050px){
+ .app{grid-template-columns:76px minmax(0,1fr)}
+ .brand span,.nav-item span,.sidebar-footer{display:none}
+ .brand{justify-content:center;padding-left:0;padding-right:0}
+ .nav-item{text-align:center}
+ .workspace{grid-template-columns:1fr}
+ .dictionary{position:relative;top:auto;min-height:auto}
+}
+@media (max-width:720px){
+ .app{display:block}
+ .sidebar{display:none}
+ .main{padding:12px}
+ .study-card{min-height:calc(100vh - 24px);padding:16px}
+ .workspace{display:block}
+ .dictionary{margin-top:12px}
+ .sentence-text{font-size:20px}
+ .state-grid{grid-template-columns:1fr}
+}
+.library-view{display:none}.library-view.active{display:block}.learn-view.hidden{display:none}
+.output-view{display:none}.output-view.active{display:block}
+.translation-view{display:none}.translation-view.active{display:block}.translation-grid{display:grid;grid-template-columns:245px minmax(0,1fr);gap:18px;align-items:start}.translation-card{min-height:650px;padding:28px}.translation-counter{font-size:13px;color:var(--muted);margin-bottom:20px}.translation-zh{font-size:25px;line-height:1.7;font-weight:720;max-width:820px}.translation-label{font-size:12px;color:var(--muted);font-weight:720;letter-spacing:.03em;text-transform:uppercase;margin:28px 0 9px}.translation-input{width:100%;min-height:130px;resize:vertical;border:1px solid var(--line);border-radius:11px;padding:13px;font-size:16px;line-height:1.65}.translation-input:focus{outline:2px solid #bfd5ff;border-color:var(--primary)}.translation-reference{background:#f7f9fc;border-radius:11px;padding:14px;line-height:1.7;font-size:15px}.ai-feedback{margin-top:14px;padding:14px;border-radius:11px;background:var(--primary-soft);line-height:1.7;font-size:14px;white-space:pre-wrap}.ai-feedback.loading{color:var(--muted);background:#f7f9fc}.translation-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:22px;flex-wrap:wrap}.translation-side{padding:18px}.translation-side .queue-line{margin:9px 0}.translation-note{margin-top:16px;padding:11px;border-radius:9px;background:#f7f9fc;color:var(--muted);font-size:12px;line-height:1.6}
+.practice-view{display:none}.practice-view.active{display:block}.practice-grid{display:grid;grid-template-columns:245px minmax(0,1fr);gap:18px;align-items:start}.practice-side{padding:18px}.practice-card{min-height:630px;padding:28px}.question-number{font-size:12px;color:var(--primary);font-weight:750;letter-spacing:.04em;text-transform:uppercase}.question-prompt{font-size:21px;line-height:1.6;font-weight:720;margin:12px 0 24px;max-width:890px}.choice-list{display:grid;gap:10px;max-width:880px}.choice-btn{border:1px solid var(--line);background:#fff;border-radius:11px;padding:13px 15px;display:flex;gap:12px;text-align:left;line-height:1.55;color:var(--text)}.choice-btn:hover,.choice-btn.selected{border-color:var(--primary);background:var(--primary-soft)}.choice-letter{width:24px;height:24px;border-radius:50%;background:#f1f3f6;display:grid;place-items:center;font-size:12px;font-weight:750;flex:0 0 auto}.choice-btn.selected .choice-letter{background:var(--primary);color:#fff}.choice-btn.correct{border-color:var(--green);background:var(--green-soft)}.choice-btn.correct .choice-letter{background:var(--green);color:#fff}.choice-btn.wrong{border-color:var(--red);background:var(--red-soft)}.choice-btn.wrong .choice-letter{background:var(--red);color:#fff}.practice-result{margin-top:22px;padding:14px;border-radius:11px;line-height:1.7;font-size:14px}.practice-result.good{background:var(--green-soft);color:var(--green)}.practice-result.bad{background:var(--red-soft);color:var(--red)}.practice-evidence{margin-top:14px;padding:14px;border-radius:11px;background:#f7f9fc;font-size:14px;line-height:1.7}.practice-actions{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:28px;flex-wrap:wrap}
+.today-view,.progress-view{display:none}.today-view.active,.progress-view.active{display:block}.today-header,.progress-header{margin-bottom:18px}.today-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;max-width:1050px}.today-task{padding:20px;min-height:175px;display:flex;flex-direction:column}.today-kicker{font-size:12px;color:var(--muted);font-weight:720;text-transform:uppercase;letter-spacing:.03em}.today-count{font-size:34px;font-weight:780;margin:10px 0 3px}.today-text{font-size:13px;color:var(--muted);line-height:1.6}.today-task .primary-btn,.today-task .outline-btn{margin-top:auto;align-self:flex-start}.progress-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;max-width:1150px}.progress-card{padding:19px;min-height:175px}.progress-card h3{font-size:15px;margin:0 0 14px}.progress-row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}.progress-row:last-child{border-bottom:0}.progress-row strong{font-size:15px}.progress-note{margin-top:18px;max-width:780px;padding:13px 15px;background:#f7f9fc;border-radius:11px;color:var(--muted);font-size:13px;line-height:1.7}
+.output-header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px}.output-grid{display:grid;grid-template-columns:245px minmax(0,1fr);gap:18px;align-items:start}.queue-card{padding:18px}.queue-list{display:grid;gap:9px;margin-top:14px}.queue-line{display:flex;justify-content:space-between;gap:8px;font-size:13px}.training-card{min-height:610px;padding:28px;display:flex;flex-direction:column}.output-tabs{display:flex;gap:7px;border-bottom:1px solid var(--line);margin-bottom:25px}.output-tab{border:0;background:transparent;padding:11px 13px;color:var(--muted);font-weight:650;border-bottom:2px solid transparent}.output-tab.active{color:var(--primary);border-bottom-color:var(--primary)}.training-kicker{font-size:12px;color:var(--muted);font-weight:720;letter-spacing:.02em;text-transform:uppercase}.training-term{font-size:28px;font-weight:760;margin:10px 0 4px}.training-prompt{font-size:16px;line-height:1.7;margin:20px 0 12px}.training-context{padding:14px;border-radius:10px;background:#f7f9fc;font-size:14px;line-height:1.7;color:#374151}.answer-row{display:flex;gap:9px;margin-top:22px}.answer-input{border:1px solid var(--line);border-radius:10px;padding:12px 13px;font-size:16px;flex:1}.result-box{padding:13px 14px;border-radius:10px;margin-top:16px;font-size:14px;line-height:1.6}.result-box.good{background:var(--green-soft);color:var(--green)}.result-box.bad{background:var(--red-soft);color:var(--red)}.training-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:auto;padding-top:28px}.queue-empty{display:grid;place-items:center;min-height:330px;text-align:center;color:var(--muted);line-height:1.7}.pending-note{margin-top:12px;padding:10px;border-radius:9px;background:#f7f9fc;color:var(--muted);font-size:12px;line-height:1.55}
+.library-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}.page-title{font-size:28px;font-weight:760}.page-sub{color:var(--muted);font-size:13px;margin-top:5px}.overview{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:16px}.metric{padding:14px 15px}.metric-label{font-size:12px;color:var(--muted)}.metric-value{font-size:23px;font-weight:760;margin-top:5px}
+.library-tabs{display:flex;gap:7px;border-bottom:1px solid var(--line);margin-bottom:16px}.library-tab{border:0;background:transparent;padding:11px 13px;color:var(--muted);font-weight:650;border-bottom:2px solid transparent}.library-tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+.library-grid{display:grid;grid-template-columns:185px minmax(245px,.8fr) minmax(360px,1.2fr);min-height:640px;overflow:hidden}.library-filter{padding:18px;border-right:1px solid var(--line);background:#fbfcfd}.filter-title{font-size:12px;font-weight:750;color:var(--muted);letter-spacing:.02em;text-transform:uppercase;margin:0 0 11px}.filter-btn{width:100%;border:0;background:transparent;color:#4b5563;text-align:left;padding:9px;border-radius:8px;margin:1px 0}.filter-btn.active{background:var(--primary-soft);color:var(--primary);font-weight:650}.filter-count{float:right;font-size:11px;color:inherit;opacity:.75}.library-list{border-right:1px solid var(--line);min-width:0}.library-list-head{padding:15px;border-bottom:1px solid var(--line);display:grid;gap:9px}.search-input,.filter-select{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 10px;width:100%;font-size:13px}.list-controls{display:grid;grid-template-columns:1fr 1fr;gap:7px}.library-items{max-height:562px;overflow:auto}.library-item{width:100%;border:0;border-bottom:1px solid var(--line);background:#fff;text-align:left;padding:13px 15px}.library-item:hover,.library-item.active{background:var(--primary-soft)}.item-row{display:flex;align-items:center;justify-content:space-between;gap:8px}.item-name{font-weight:720;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.item-zh{font-size:12px;color:var(--muted);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.item-meta{display:flex;gap:7px;align-items:center;margin-top:8px;font-size:11px;color:var(--muted)}.mini-badge{padding:3px 6px;border-radius:999px;background:#f1f3f6;color:#667085}.mini-badge.act{background:var(--orange-soft);color:var(--orange)}.list-empty{padding:36px 18px;text-align:center;color:var(--muted);font-size:13px;line-height:1.7}.library-detail{padding:21px;overflow:auto;max-height:640px}.detail-empty{color:var(--muted);font-size:14px;line-height:1.7;padding:30px 12px}.detail-top{display:flex;justify-content:space-between;gap:12px}.detail-title{font-size:25px;font-weight:760}.detail-type{font-size:12px;color:var(--muted);margin-top:4px;text-transform:uppercase}.detail-section{padding:17px 0;border-bottom:1px solid var(--line)}.detail-section:last-child{border-bottom:0}.detail-actions{display:flex;gap:8px;flex-wrap:wrap}.status-grid{display:grid;gap:8px}.status-row{display:flex;align-items:center;justify-content:space-between;font-size:13px}.encounter{padding:12px;border:1px solid var(--line);border-radius:10px;margin-top:9px;background:#fff}.encounter-title{font-size:12px;color:var(--muted);margin-bottom:6px}.encounter-text{font-size:13px;line-height:1.55}.encounter-actions{display:flex;gap:7px;margin-top:10px}.small-btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 8px;font-size:12px;color:#4b5563}.known-check{margin-top:13px;padding:11px;border-radius:10px;background:#f7f9fc;font-size:13px}.known-actions{display:flex;gap:7px;margin-top:9px}.data-actions{display:flex;gap:8px;align-items:center}.danger-btn{border:1px solid #f0b8b8;background:#fff1f1;color:var(--red);border-radius:9px;padding:8px 10px;font-size:12px}
+@media (max-width:1180px){.overview{grid-template-columns:repeat(3,minmax(0,1fr))}.library-grid{grid-template-columns:170px minmax(235px,.8fr) minmax(300px,1fr)}}
+@media (max-width:850px){.library-grid{grid-template-columns:1fr}.library-filter,.library-list{border-right:0;border-bottom:1px solid var(--line)}.library-filter{display:flex;gap:6px;overflow:auto}.filter-title{display:none}.filter-btn{width:auto;white-space:nowrap}.library-items,.library-detail{max-height:none}.overview{grid-template-columns:repeat(2,minmax(0,1fr))}.library-header{display:block}.data-actions{margin-top:12px;flex-wrap:wrap}}
+@media (max-width:850px){.output-grid{grid-template-columns:1fr}.output-header{display:block}.queue-card{order:2}.answer-row{flex-wrap:wrap}.training-actions{flex-wrap:wrap}}
+@media (max-width:850px){.translation-grid{grid-template-columns:1fr}.translation-side{order:2}.translation-zh{font-size:21px}}
+@media (max-width:850px){.practice-grid{grid-template-columns:1fr}.practice-side{order:2}.question-prompt{font-size:18px}}
+@media (max-width:850px){.today-grid,.progress-grid{grid-template-columns:1fr}}
+.reading-workspace{display:grid;grid-template-columns:minmax(330px,.82fr) minmax(0,1.18fr);gap:24px;align-items:start}.reading-passage{position:sticky;top:22px;padding:18px;border:1px solid var(--line);border-radius:13px;background:#f8fafc}.reading-passage-label{font-size:12px;color:var(--primary);font-weight:760;letter-spacing:.04em;text-transform:uppercase;margin-bottom:11px}.reading-passage-text{max-height:640px;overflow:auto;white-space:pre-wrap;font-size:14px;line-height:1.82;color:#334155;padding-right:8px}.reading-question{min-width:0}.reading-source-note{font-size:12px;color:var(--muted);margin:-12px 0 18px;line-height:1.55}.output-tab:disabled{opacity:.38;cursor:not-allowed}@media (max-width:1050px){.reading-workspace{grid-template-columns:1fr}.reading-passage{position:static}.reading-passage-text{max-height:360px}}
+.learn-hub-view,.learn-translation-view{display:none}.learn-hub-view.active,.learn-translation-view.active{display:block}.learn-hub-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;max-width:1180px}.learn-hub-card{padding:20px;min-height:265px;display:flex;flex-direction:column}.learn-hub-icon{font-size:25px}.learn-hub-card h2{font-size:19px;margin:12px 0 7px}.learn-hub-card p{font-size:13px;color:var(--muted);line-height:1.65;margin:0 0 13px}.learn-material-list{display:grid;gap:8px;max-height:270px;overflow:auto}.learn-material-btn{width:100%;text-align:left;border:1px solid var(--line);background:#fff;border-radius:9px;padding:10px;color:var(--text);font-size:13px;line-height:1.45}.learn-material-btn:hover{border-color:var(--primary);background:var(--primary-soft)}.learn-material-btn small{display:block;color:var(--muted);margin-top:3px}.learn-hub-empty{font-size:13px;color:var(--muted);line-height:1.6;padding:12px 0}.learn-translation-source{font-size:24px;font-weight:730;line-height:1.7;max-width:900px}.translation-reference.pending{color:var(--muted);font-size:13px}@media (max-width:950px){.learn-hub-grid{grid-template-columns:1fr}}
+#practiceArea{min-width:0;overflow-wrap:anywhere}
+.output-tabs{flex-wrap:wrap}
+.choice-btn{width:100%;min-width:0}
+.choice-btn span:last-child{min-width:0;overflow-wrap:anywhere}
+</style>
+<meta name="theme-color" content="#2563eb"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="FocusEnglish"/>
+<meta name="description" content="你的随身英语练习本。精听、阅读、真题练习与词句复习，下载后离线继续学。"/>
+<link rel="manifest" href="manifest.webmanifest"/>
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml"/>
+<link rel="apple-touch-icon" href="icons/icon-180.png"/>
+<link rel="stylesheet" href="mobile.css"/>
+</head>
+<body>
+<header class="mobile-header">
+  <a class="mobile-brand" href="panel.html" aria-label="返回英语学习面板"><span class="logo" aria-hidden="true">F</span><span>学习岛</span></a>
+  <div class="mobile-tools"><button class="offline-button" id="openOffline" aria-haspopup="dialog"><span class="status-dot" id="connectionDot"></span><span id="connectionLabel">离线与安装</span></button></div>
+</header>
+<dialog class="mobile-dialog" id="offlineDialog" aria-labelledby="offlineTitle">
+  <div class="dialog-heading"><div><h2 id="offlineTitle">随时继续学</h2><p>安装 · 离线下载 · 学习备份</p></div><button class="close-sheet" id="closeOffline" aria-label="关闭离线设置">×</button></div>
+  <div class="dialog-body">
+    <section class="offline-section">
+      <div class="offline-state" role="status"><span class="status-dot" id="shellDot"></span><span id="shellStatus">正在准备离线题库，请保持页面打开…</span></div>
+      <div class="offline-facts"><span id="storageUsage">正在检查存储…</span><span id="appVersion"></span></div>
+      <div class="offline-actions"><button class="outline-btn" id="retryOffline">重新检查</button><button class="primary-btn" id="applyUpdate" hidden>更新应用</button></div>
+    </section>
+    <section class="offline-section all-downloads">
+      <h3>从本地资源包导入</h3>
+      <p>下载总是报网络错误时，可以把电脑上的完整资源 ZIP 一次传入手机，再从学习面板导入，无需逐份下载。</p>
+      <a class="primary-btn" href="panel.html#import" style="display:block;text-align:center;text-decoration:none;padding:12px">回到面板，导入离线包</a>
+    </section>
+    <section class="offline-section">
+      <h3>一次保存全部</h3>
+      <p>联网时也可保存全部听力音频和完整词典。要一次准备完整题库，请优先使用上方“从本地资源包导入”。已下载的内容会跳过，暂停后可以继续。</p>
+      <p class="offline-hint" id="allDownloadSummary">正在检查全部资源…</p>
+      <div class="offline-actions"><button class="primary-btn" id="downloadAll">一键下载全部</button><button class="outline-btn" id="pauseAllDownloads" hidden>暂停下载</button></div>
+      <progress id="allDownloadProgress" max="1" value="0" aria-label="全部离线资源下载进度" hidden></progress>
+      <div class="download-progress" id="allDownloadStatus" role="status" aria-live="polite"></div>
+      <p>建议连接 Wi-Fi，并保持应用在前台；锁屏或切换应用可能中断下载，再次点击可继续。</p>
+    </section>
+    <section class="offline-section" id="installSection">
+      <h3>添加到 iPhone 主屏幕</h3>
+      <p>用 Safari 打开本网址，点“分享”，选择“添加到主屏幕”，再点“添加”。若出现“作为网页 App 打开”，请开启。</p>
+      <p class="offline-hint" id="installHint">添加后，点桌面的 FocusEnglish 图标就能进入学习面板。首次请联网打开；导入离线包后，等待面板显示“完整资源已保存在本机”。</p>
+    </section>
+    <section class="offline-section">
+      <h3>听力音频</h3><p>联网时直接播放；保存一份音频后，这份试卷的听力和对应精听均可离线使用。下载期间请保持应用在前台。</p>
+      <label class="download-label" for="audioDownloadSelect">选择试卷</label><select id="audioDownloadSelect"></select>
+      <div class="offline-actions"><button class="primary-btn" id="downloadAudio">保存所选音频</button><button class="outline-btn" id="cancelDownload" hidden>取消下载</button></div>
+      <div class="download-progress" id="audioDownloadStatus" role="status" aria-live="polite"></div>
+      <div class="download-list" id="downloadedAudio"></div>
+    </section>
+    <section class="offline-section">
+      <h3>离线词典</h3><p>题库中使用的词汇随题目保存。完整词典包含约 37 万个词条，联网时按需加载；也可以全部保存，供离线查词。</p>
+      <button class="outline-btn" id="downloadDictionary">保存完整词典</button>
+      <div class="download-progress" id="dictionaryDownloadStatus" role="status" aria-live="polite"></div>
+    </section>
+    <section class="offline-section">
+      <h3>学习记录备份</h3><p>错题、生词、译文和进度保存在这台设备上。建议定期将备份保存到 iPhone“文件”或 iCloud Drive。电脑记录也能从 Library 导出后在这里恢复。</p>
+      <div class="offline-actions"><button class="outline-btn" id="mobileExport">导出学习备份</button><button class="outline-btn" id="mobileImport">恢复学习备份</button></div>
+      <p class="offline-hint">移除缓存音频不会删除学习记录。清理网站数据或更换设备前，请先导出备份。</p>
+    </section>
+  </div>
+</dialog>
+<dialog class="mobile-dialog dictionary-dialog" id="dictionaryDialog" aria-labelledby="dictionarySheetTitle">
+  <div class="dialog-heading"><h2 id="dictionarySheetTitle">查词</h2><button class="close-sheet" id="closeDictionary" aria-label="关闭查词">×</button></div>
+  <div id="dictionaryMount"></div>
+</dialog>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="logo">F</div><span>FocusEnglish</span></div>
+    <nav class="nav">
+      <button class="nav-item" id="navToday"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10H3z"/><path d="M9 20v-7h6v7"/></svg><span>今日</span></button>
+      <button class="nav-item" id="navPractice"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M9 10h6M9 14h6M9 18h4"/></svg><span>练习</span></button>
+      <button class="nav-item active" id="navLearn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Zm0 0v15"/></svg><span>精学</span></button>
+      <button class="nav-item" id="navTranslation" hidden>文 <span>Translate</span></button>
+      <button class="nav-item" id="navOutput"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 7a7.5 7.5 0 0 1 12-2L20 8M4 16l2.4 3a7.5 7.5 0 0 0 12-2"/></svg><span>复习</span></button>
+      <a class="nav-item" id="navLibrary" href="#library"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="5" height="16" rx="1"/><path d="M3 10h5M11 5v16M14 4l5-1 3 17-5 1z"/></svg><span>词句库</span></a>
+      <button class="nav-item" id="navProgress"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3v18h17M9 16v-5M14 16V7M19 16V4"/></svg><span>进度</span></button>
+    </nav>
+    <div class="sidebar-footer">FocusEnglish Beta 0.5<br/>完整学习闭环 · Dictionary Core</div>
+  </aside>
+  <main class="main">
+    <section class="learn-hub-view active" id="learnHubView">
+      <div class="progress-header"><div class="page-title">Learn · 精学</div><div class="page-sub">从已核验、可学习的听力、仔细阅读和翻译材料进入；每一类材料独立开放。</div></div>
+      <div class="learn-hub-grid" id="learnHubGrid"></div>
+    </section>
+    <section class="learn-view" id="learnView">
+    <div class="topbar">
+      <div class="crumb" id="learnCrumb">Learn · 精学 / 2025.12 CET-6 / Recording One</div>
+      <div class="progress-text"><span id="counter">1 / 20</span></div>
+    </div>
+    <div class="workspace">
+      <section class="card study-card">
+        <div class="study-header">
+          <div>
+            <div class="material-title" id="learnMaterialTitle">Recording One · Lost Checked Baggage</div>
+            <div class="material-sub" id="learnMaterialSource">Section C · Questions 16–18 · 2025年12月六级第一套</div>
+          </div>
+          <div class="header-actions">
+            <button class="outline-btn" id="fullPlay">▶ 全文</button>
+          </div>
+        </div>
+
+        <div class="player">
+          <button class="play-main" id="playBtn">▶</button>
+          <div class="player-controls">
+            <button id="replayBtn">↻ 本句</button>
+            <select id="speed">
+              <option value="0.8">0.8×</option>
+              <option value="1" selected>1.0×</option>
+              <option value="1.2">1.2×</option>
+            </select>
+            <button id="loopBtn">Loop 关闭</button>
+          </div>
+        </div>
+
+        <div class="sentence-area">
+          <div id="sentenceHidden" class="sentence-hidden">先听，不看文本。</div>
+          <div id="sentenceText" class="sentence-text" style="display:none"></div>
+          <div id="evidence"></div>
+        </div>
+
+        <div class="state-section">
+          <div class="state-title">这句话目前的理解情况</div>
+          <div class="state-grid">
+            <button class="state-btn good" data-state="understood">✓ 完全理解</button>
+            <button class="state-btn mid" data-state="partial">◐ 部分理解</button>
+            <button class="state-btn bad" data-state="unclear">× 暂未理解</button>
+          </div>
+        </div>
+
+        <div class="hint-row">
+          <div class="hint-text" id="hintText">Hint 尚未展开</div>
+          <button class="outline-btn" id="showText">显示文本</button>
+        </div>
+
+        <div class="bottom-actions">
+          <button class="outline-btn" id="saveSentence">♡ 收藏句子</button>
+          <div class="nav-sentence">
+            <button class="outline-btn" id="prevBtn">← 上一句</button>
+            <button class="primary-btn" id="nextBtn">下一句 →</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="card dictionary" id="dictPanel">
+        <div class="dict-empty" id="dictEmpty">
+          显示文本后，点击带下划线的单词或词组。<br/><br/>
+          点击任意单词；拖选连续文字查询词组。<br/><br/>
+          基础词典提供词形还原、中文释义与简明英文释义；<br/>查词只会创建 Encounter，不会自动收藏或判定掌握。
+          <br/><br/><a href="dictionary/ATTRIBUTION.md" target="_blank">词典来源与许可</a>
+        </div>
+        <div id="dictContent" style="display:none"></div>
+      </aside>
+    </div>
+    </section>
+    <section class="library-view" id="libraryView">
+      <div class="library-header">
+        <div><div class="page-title">Library</div><div class="page-sub">你的个人英语数据库 · 每一次有意义的学习都会留下记录。</div></div>
+        <div class="data-actions"><button class="outline-btn" id="exportData">导出备份</button><button class="outline-btn" id="importData">恢复备份</button><button class="danger-btn" id="resetData">清空学习数据</button><input type="file" id="importFile" accept="application/json" hidden></div>
+      </div>
+      <div class="overview" id="overview"></div>
+      <div class="library-tabs" id="libraryTabs">
+        <button class="library-tab active" data-tab="word">Words</button><button class="library-tab" data-tab="phrase">Phrases</button><button class="library-tab" data-tab="sentence">Sentences</button><button class="library-tab" data-tab="mistakes">Mistakes</button>
+      </div>
+      <section class="card library-grid">
+        <aside class="library-filter" id="libraryFilter"></aside>
+        <div class="library-list"><div class="library-list-head"><input class="search-input" id="librarySearch" placeholder="搜索英文或中文"><div class="list-controls"><select class="filter-select" id="statusFilter"><option value="all">全部状态</option><option value="saved">已收藏</option><option value="reading:recognized">阅读：已识别</option><option value="listening:activating">听力：激活中</option><option value="active:not_started">主动：未训练</option></select><select class="filter-select" id="sortOrder"><option value="recent">最近遇到</option><option value="saved">最近收藏</option><option value="az">A–Z</option></select></div></div><div class="library-items" id="libraryItems"></div></div>
+        <aside class="library-detail" id="libraryDetail"></aside>
+      </section>
+    </section>
+    <section class="output-view" id="outputView">
+      <div class="output-header"><div><div class="page-title">Output</div><div class="page-sub">今日到期内容才自动出现；跨日成功后，逐步延长复习间隔。</div></div></div>
+      <div class="overview" id="outputOverview"></div>
+      <div class="output-grid">
+        <aside class="card queue-card"><div class="filter-title">本次训练</div><div class="queue-list" id="outputQueueInfo"></div><div class="pending-note">尚未释义的自建 Phrase 会保留在 Library，但暂不进入训练，直到补入可靠释义。</div></aside>
+        <section class="card training-card"><div class="output-tabs" id="outputTabs"><button class="output-tab active" data-mode="listening">👂 听力识别</button><button class="output-tab" data-mode="expression">🧩 表达激活</button></div><div id="trainingArea"></div></section>
+      </div>
+    </section>
+    <section class="translation-view" id="translationView">
+      <div class="output-header"><div><div class="page-title">Translate</div><div class="page-sub">中文 → 英文 · 提交后查看参考译文并保存记录。</div></div></div>
+      <div class="translation-grid">
+        <aside class="card translation-side"><div class="filter-title">逐句翻译</div><div id="translationQueue"></div><div class="translation-note">参考译文来自当前材料原句。提交会保存你的译文，方便日后逐句复盘。</div></aside>
+        <section class="card translation-card" id="translationArea"></section>
+      </div>
+    </section>
+    <section class="practice-view" id="practiceView">
+      <div class="output-header"><div><div class="page-title">Practice</div><div class="page-sub">63 套试卷按板块开放：能做题的立即可用，精听与证据定位单独完善。</div></div></div>
+      <div class="practice-grid">
+        <aside class="card practice-side"><div id="practiceQueue"></div><div class="translation-note">听力只展示独立版本，共用听力不重复列出；阅读、写作和翻译按原试卷保留。板块核验后开放，精听能力单独判断。</div></aside>
+        <section class="card practice-card" id="practiceArea"></section>
+      </div>
+    </section>
+    <section class="progress-view" id="readingLearnView">
+      <div class="progress-header"><div class="page-title">Learn · 仔细阅读</div><div class="page-sub" id="readingLearnMeta"></div></div>
+      <section class="card practice-card"><div class="translation-reference" id="readingPassageText"></div><div class="practice-actions"><button class="outline-btn" id="backToReadingPractice">← 回到 Reading 做题</button></div></section>
+    </section>
+    <section class="learn-translation-view" id="learnTranslationView">
+      <div class="progress-header"><div class="page-title">Learn · 翻译精学</div><div class="page-sub" id="learnTranslationMeta"></div></div>
+      <div class="translation-grid">
+        <aside class="card translation-side"><div class="filter-title">逐句写作</div><div id="learnTranslationQueue"></div><div class="translation-note">译文按句保存在浏览器本地。参考译文只在已核验导入时显示；不会用 AI 或猜测答案代替原始资料。</div></aside>
+        <section class="card translation-card" id="learnTranslationArea"></section>
+      </div>
+    </section>
+    <section class="today-view" id="todayView">
+      <div class="today-header"><div class="page-title">Today</div><div class="page-sub">只显示今天实际需要继续的学习，不制造额外任务。</div></div>
+      <div class="today-grid" id="todayGrid"></div>
+    </section>
+    <section class="progress-view" id="progressView">
+      <div class="progress-header"><div class="page-title">Progress</div><div class="page-sub">基于当前浏览器中真实保存的学习记录。</div></div>
+      <div class="progress-grid" id="progressGrid"></div><div class="progress-note">这里暂不做等级、排名或预测。先让你看见：学过什么、练过什么、哪些仍在激活。</div>
+    </section>
+  </main>
+</div>
+<audio id="audio" src="audio/recording_one-d3b9b4ab2e72.m4a" preload="none"></audio>
+<div class="toast" id="toast"></div>
+<script>
+const DATA = {"sentences": [{"id": "S01", "order": 1, "text": "Every year, of the more than 2.5 billion bags checked onto flights worldwide, 26 million go missing.", "audio_start_global_sec": 836.98, "audio_end_global_sec": 843.526, "audio_start_local_sec": 0.28, "audio_end_local_sec": 6.826, "question_evidence": [], "alignment_confidence": "medium"}, {"id": "S02", "order": 2, "text": "And of that 26 million, 1 million never make it back to their original owner.", "audio_start_global_sec": 844.097, "audio_end_global_sec": 849.212, "audio_start_local_sec": 7.397, "audio_end_local_sec": 12.512, "question_evidence": [], "alignment_confidence": "medium"}, {"id": "S03", "order": 3, "text": "Bad weather and flight delays, miscoded destination tags, and some people simply forgetting to pick up one of their bags are a few of the reasons.", "audio_start_global_sec": 850.097, "audio_end_global_sec": 858.082, "audio_start_local_sec": 13.397, "audio_end_local_sec": 21.382, "question_evidence": [], "alignment_confidence": "medium"}, {"id": "S04", "order": 4, "text": "But the number one reason a bag ends up lost is that it has no ID tag and airlines don’t know to whom it belongs.", "audio_start_global_sec": 858.737, "audio_end_global_sec": 866.314, "audio_start_local_sec": 22.037, "audio_end_local_sec": 29.614, "question_evidence": [16], "alignment_confidence": "medium"}, {"id": "S05", "order": 5, "text": "Transferring baggage from check-in to departure gates to arrival gates to baggage claim is a delicate piece of timing.", "audio_start_global_sec": 867.246, "audio_end_global_sec": 873.936, "audio_start_local_sec": 30.546, "audio_end_local_sec": 37.236, "question_evidence": [], "alignment_confidence": "medium"}, {"id": "S06", "order": 6, "text": "If the system moves too slowly, the bags won’t make connecting flights.", "audio_start_global_sec": 874.538, "audio_end_global_sec": 878.887, "audio_start_local_sec": 37.838, "audio_end_local_sec": 42.187, "question_evidence": [], "alignment_confidence": "medium"}, {"id": "S07", "order": 7, "text": "If it’s too fast, the bags may make the connection, but the passengers might miss the flight.", "audio_start_global_sec": 879.439, "audio_end_global_sec": 884.706, "audio_start_local_sec": 42.739, "audio_end_local_sec": 48.006, "question_evidence": [], "alignment_confidence": "medium"}, {"id": "S08", "order": 8, "text": "Each airport has its own way of allotting how much time a bag needs to move in transit.", "audio_start_global_sec": 885.453, "audio_end_global_sec": 890.536, "audio_start_local_sec": 48.753, "audio_end_local_sec": 53.836, "question_evidence": [], "alignment_confidence": "medium"}, {"id": "S09", "order": 9, "text": "Some airports have sophisticated automated systems, including scanners that read baggage labels, destination coded vehicles that load and unload the bags without stopping, and sorting machines that route baggage to the appropriate gate.", "audio_start_global_sec": 891.486, "audio_end_global_sec": 905.91, "audio_start_local_sec": 54.786, "audio_end_local_sec": 69.21, "question_evidence": [], "alignment_confidence": "medium"}, {"id": "S10", "order": 10, "text": "Even so, all that technology may not save your baggage tag from being torn off on the conveyor belt, making you the owner of a bag with no name.", "audio_start_global_sec": 906.898, "audio_end_global_sec": 915.846, "audio_start_local_sec": 70.198, "audio_end_local_sec": 79.146, "question_evidence": [17], "alignment_confidence": "medium"}, {"id": "S11", "order": 11, "text": "Once a bag goes missing and the passenger files a claim, the bag is declared mishandled by the carrier.", "audio_start_global_sec": 917.426, "audio_end_global_sec": 923.108, "audio_start_local_sec": 80.726, "audio_end_local_sec": 86.408, "question_evidence": [], "alignment_confidence": "medium"}, {"id": "S12", "order": 12, "text": "Mishandled refers to bags that have been delayed, lost, stolen or damaged.", "audio_start_global_sec": 923.904, "audio_end_global_sec": 928.962, "audio_start_local_sec": 87.204, "audio_end_local_sec": 92.262, "question_evidence": [], "alignment_confidence": "medium"}, {"id": "S13", "order": 13, "text": "Most delayed bags are only one flight behind their owners and can be delivered within 24 hours.", "audio_start_global_sec": 929.957, "audio_end_global_sec": 935.716, "audio_start_local_sec": 93.257, "audio_end_local_sec": 99.016, "question_evidence": [], "alignment_confidence": "medium"}, {"id": "S14", "order": 14, "text": "The other bags are examined by airline employees for clues to their ownership and destination.", "audio_start_global_sec": 936.384, "audio_end_global_sec": 941.874, "audio_start_local_sec": 99.684, "audio_end_local_sec": 105.174, "question_evidence": [], "alignment_confidence": "medium"}, {"id": "S15", "order": 15, "text": "If the mystery is solved, those bags are returned to their owners within four or five days.", "audio_start_global_sec": 942.633, "audio_end_global_sec": 947.515, "audio_start_local_sec": 105.933, "audio_end_local_sec": 110.815, "question_evidence": [], "alignment_confidence": "medium"}, {"id": "S16", "order": 16, "text": "Bags with no destination code or identification tag are shipped to a central warehouse and undergo a comprehensive baggage tracing process over the next 90 days.", "audio_start_global_sec": 948.978, "audio_end_global_sec": 959.426, "audio_start_local_sec": 112.278, "audio_end_local_sec": 122.726, "question_evidence": [], "alignment_confidence": "medium"}, {"id": "S17", "order": 17, "text": "Airlines inventory their mishandled baggage, and many use a database to match the contents with owners’ descriptions.", "audio_start_global_sec": 960.891, "audio_end_global_sec": 967.361, "audio_start_local_sec": 124.191, "audio_end_local_sec": 130.661, "question_evidence": [], "alignment_confidence": "medium"}, {"id": "S18", "order": 18, "text": "It takes about three months to go from missing in action to irretrievably lost.", "audio_start_global_sec": 968.023, "audio_end_global_sec": 972.456, "audio_start_local_sec": 131.323, "audio_end_local_sec": 135.756, "question_evidence": [], "alignment_confidence": "medium"}, {"id": "S19", "order": 19, "text": "Once that happens, the bags are donated to charity, sold at auction, or purchased by a company which sells them to the public.", "audio_start_global_sec": 973.252, "audio_end_global_sec": 980.863, "audio_start_local_sec": 136.552, "audio_end_local_sec": 144.163, "question_evidence": [], "alignment_confidence": "medium"}, {"id": "S20", "order": 20, "text": "So never pack anything of real value in your checked baggage and make sure your name is on the bag along with your phone number so an agent can contact you.", "audio_start_global_sec": 981.556, "audio_end_global_sec": 990.985, "audio_start_local_sec": 144.856, "audio_end_local_sec": 154.285, "question_evidence": [18], "alignment_confidence": "medium"}], "dictionary": [{"type": "word", "headword": "miscoded", "zh": "编码错误的；被错误编码的", "en": "given the wrong code or identifying information", "context": "miscoded destination tags", "source_sentence": "S03"}, {"type": "phrase", "headword": "destination tag", "zh": "目的地标签", "en": "a tag showing where a piece of baggage should be sent", "context": "miscoded destination tags", "source_sentence": "S03"}, {"type": "phrase", "headword": "ID tag", "zh": "身份标签；身份识别标签", "en": "a tag containing information that identifies the owner", "context": "it has no ID tag", "source_sentence": "S04"}, {"type": "phrase", "headword": "baggage claim", "zh": "行李提取处", "en": "the area at an airport where passengers collect checked baggage", "context": "arrival gates to baggage claim", "source_sentence": "S05"}, {"type": "phrase", "headword": "a delicate piece of timing", "zh": "对时间衔接要求很精细的过程", "en": "a process that depends on very careful timing", "context": "is a delicate piece of timing", "source_sentence": "S05"}, {"type": "phrase", "headword": "connecting flight", "zh": "转机航班；衔接航班", "en": "a flight taken after another flight as part of the same journey", "context": "the bags won’t make connecting flights", "source_sentence": "S06"}, {"type": "phrase", "headword": "in transit", "zh": "在运输途中；在转运过程中", "en": "while being transported from one place to another", "context": "a bag needs to move in transit", "source_sentence": "S08"}, {"type": "word", "headword": "allot", "zh": "分配；划定", "en": "to give a particular amount of time, money, or something else for a purpose", "context": "allotting how much time a bag needs", "source_sentence": "S08"}, {"type": "phrase", "headword": "sophisticated automated systems", "zh": "先进的自动化系统", "en": "advanced systems that operate automatically using complex technology", "context": "Some airports have sophisticated automated systems", "source_sentence": "S09"}, {"type": "phrase", "headword": "baggage label", "zh": "行李标签", "en": "a label attached to baggage containing routing or identification information", "context": "scanners that read baggage labels", "source_sentence": "S09"}, {"type": "phrase", "headword": "route baggage", "zh": "将行李分流/运送到指定路线", "en": "to direct baggage along the correct path or to the correct destination", "context": "sorting machines that route baggage", "source_sentence": "S09"}, {"type": "phrase", "headword": "conveyor belt", "zh": "传送带", "en": "a continuously moving belt used to carry objects from one place to another", "context": "torn off on the conveyor belt", "source_sentence": "S10"}, {"type": "phrase", "headword": "file a claim", "zh": "提出索赔/申报请求", "en": "to make a formal request for compensation or recovery", "context": "the passenger files a claim", "source_sentence": "S11"}, {"type": "word", "headword": "mishandled", "zh": "被错误处理的；处置不当的", "en": "handled incorrectly or improperly", "context": "the bag is declared mishandled", "source_sentence": "S11"}, {"type": "word", "headword": "carrier", "zh": "承运方；航空公司", "en": "a company that transports people or goods", "context": "mishandled by the carrier", "source_sentence": "S11"}, {"type": "word", "headword": "ownership", "zh": "所有权；归属", "en": "the state of belonging to or being owned by someone", "context": "clues to their ownership and destination", "source_sentence": "S14"}, {"type": "phrase", "headword": "identification tag", "zh": "身份识别标签", "en": "a tag used to identify an item or its owner", "context": "no destination code or identification tag", "source_sentence": "S16"}, {"type": "phrase", "headword": "central warehouse", "zh": "中央仓库；集中处理仓库", "en": "a main storage facility serving as a central collection point", "context": "shipped to a central warehouse", "source_sentence": "S16"}, {"type": "phrase", "headword": "comprehensive baggage tracing process", "zh": "全面的行李追踪流程", "en": "a thorough process for locating and identifying missing baggage", "context": "undergo a comprehensive baggage tracing process", "source_sentence": "S16"}, {"type": "word", "headword": "inventory", "zh": "盘点；登记清点（动词）", "en": "to make a detailed list of items", "context": "Airlines inventory their mishandled baggage", "source_sentence": "S17"}, {"type": "phrase", "headword": "match the contents with owners’ descriptions", "zh": "将物品内容与失主描述进行匹配", "en": "to compare what is inside the baggage with descriptions provided by owners", "context": "match the contents with owners’ descriptions", "source_sentence": "S17"}, {"type": "phrase", "headword": "missing in action", "zh": "失踪状态；此处指仍未找到", "en": "not found or unaccounted for; here, still missing", "context": "go from missing in action to irretrievably lost", "source_sentence": "S18"}, {"type": "word", "headword": "irretrievably", "zh": "无法挽回地；无法找回地", "en": "in a way that cannot be recovered or put right", "context": "irretrievably lost", "source_sentence": "S18"}, {"type": "phrase", "headword": "sold at auction", "zh": "在拍卖会上出售", "en": "sold to the person who offers the highest price in a public sale", "context": "sold at auction", "source_sentence": "S19"}, {"type": "phrase", "headword": "checked baggage", "zh": "托运行李", "en": "baggage handed to an airline to be carried in the aircraft’s hold", "context": "your checked baggage", "source_sentence": "S20"}, {"type": "phrase", "headword": "anything of real value", "zh": "任何真正贵重的物品", "en": "anything that is genuinely valuable or important", "context": "never pack anything of real value", "source_sentence": "S20"}], "questions": [{"id": "Q16", "number": 16, "prompt": "What is the number one reason a bag ends up lost according to this talk?", "choices": {"A": "Its owner’s flight is delayed because of bad weather.", "B": "Airlines cannot find its owner without an ID tag on it.", "C": "Airline staff have not correctly coded its destination tag.", "D": "Its owner has forgot to pick it up from the baggage claim."}, "answer": "B", "evidence_sentence_ids": ["S04"]}, {"id": "Q17", "number": 17, "prompt": "What may happen to your baggage even when there are sophisticated automated systems?", "choices": {"A": "Its tag may get torn off on the conveyor belt.", "B": "Its tag may get stuck in the sorting machine.", "C": "It may be sent to a wrong destination.", "D": "It may be picked up by someone else."}, "answer": "A", "evidence_sentence_ids": ["S10"]}, {"id": "Q18", "number": 18, "prompt": "What does the speaker advise us to do at the end of the talk?", "choices": {"A": "Purchase irretrievably lost things at auction.", "B": "Contact the airport staff to find our missing bag.", "C": "Get the airline agent’s phone number before boarding.", "D": "Avoid packing valuable items in our checked baggage."}, "answer": "D", "evidence_sentence_ids": ["S20"]}]};
+if (false) {
+const sentences = DATA.sentences;
+const dictionary = DATA.dictionary;
+let index = Number(localStorage.getItem('fe_current_sentence') || 0);
+if(index<0 || index>=sentences.length) index=0;
+let loop=false, segmentMode=true, currentEnd=null, showingText=false;
+
+const audio=document.getElementById('audio');
+const playBtn=document.getElementById('playBtn');
+const replayBtn=document.getElementById('replayBtn');
+const loopBtn=document.getElementById('loopBtn');
+const speed=document.getElementById('speed');
+const showText=document.getElementById('showText');
+const sentenceText=document.getElementById('sentenceText');
+const sentenceHidden=document.getElementById('sentenceHidden');
+const counter=document.getElementById('counter');
+const evidence=document.getElementById('evidence');
+const hintText=document.getElementById('hintText');
+const toast=document.getElementById('toast');
+
+function msg(t){toast.textContent=t;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),1500)}
+function stateKey(i){return 'fe_sentence_state_'+i}
+function savedSentenceKey(i){return 'fe_sentence_saved_'+i}
+
+function renderSentenceText(text){
+  const matches=[];
+  dictionary.forEach((d,di)=>{
+    const esc=d.headword.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    const re=new RegExp('\\b'+esc+'\\b','ig');
+    let m; while((m=re.exec(text))!==null) matches.push({start:m.index,end:m.index+m[0].length,di,label:m[0]});
+  });
+  matches.sort((a,b)=>a.start-b.start || (b.end-b.start)-(a.end-a.start));
+  const chosen=[]; let last=-1;
+  for(const m of matches){ if(m.start>=last){chosen.push(m);last=m.end;} }
+  let out='',pos=0;
+  chosen.forEach(m=>{
+    out+=escapeHtml(text.slice(pos,m.start));
+    out+=`<span class="term" data-di="${m.di}">${escapeHtml(text.slice(m.start,m.end))}</span>`;
+    pos=m.end;
+  });
+  out+=escapeHtml(text.slice(pos));
+  return out;
+}
+function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+
+function render(){
+  const s=sentences[index];
+  counter.textContent=`${index+1} / ${sentences.length}`;
+  showingText=false;
+  sentenceText.style.display='none'; sentenceHidden.style.display='grid';
+  showText.textContent='显示文本';
+  hintText.textContent='Hint 尚未展开';
+  sentenceText.innerHTML=renderSentenceText(s.text);
+  evidence.innerHTML=s.question_evidence.length?`<span class="evidence">⚑ Q${s.question_evidence.join(', Q')} Evidence</span>`:'';
+  document.querySelectorAll('.state-btn').forEach(b=>b.classList.toggle('selected',b.dataset.state===localStorage.getItem(stateKey(index))));
+  document.getElementById('saveSentence').textContent=localStorage.getItem(savedSentenceKey(index))==='1'?'★ 已收藏句子':'♡ 收藏句子';
+  playBtn.textContent='▶';
+  localStorage.setItem('fe_current_sentence',index);
+}
+function playCurrent(){
+  const s=sentences[index];
+  segmentMode=true; currentEnd=s.audio_end_local_sec;
+  audio.currentTime=Math.max(0,s.audio_start_local_sec);
+  audio.playbackRate=Number(speed.value); audio.play(); playBtn.textContent='❚❚';
+}
+function playFull(){
+  segmentMode=false; currentEnd=null; audio.currentTime=0; audio.playbackRate=Number(speed.value); audio.play(); playBtn.textContent='❚❚';
+}
+audio.addEventListener('timeupdate',()=>{
+  if(segmentMode && currentEnd!=null && audio.currentTime>=currentEnd){
+    if(loop){ playCurrent(); } else { audio.pause(); playBtn.textContent='▶'; }
+  }
+});
+audio.addEventListener('pause',()=>{if(!loop)playBtn.textContent='▶'});
+playBtn.onclick=()=>audio.paused?playCurrent():audio.pause();
+replayBtn.onclick=playCurrent;
+document.getElementById('fullPlay').onclick=playFull;
+speed.onchange=()=>audio.playbackRate=Number(speed.value);
+loopBtn.onclick=()=>{loop=!loop;loopBtn.textContent=loop?'Loop 开启':'Loop 关闭';if(loop)loopBtn.style.color='var(--primary)';else loopBtn.style.color='';};
+showText.onclick=()=>{
+  showingText=!showingText;
+  sentenceText.style.display=showingText?'block':'none';
+  sentenceHidden.style.display=showingText?'none':'grid';
+  showText.textContent=showingText?'隐藏文本':'显示文本';
+  if(showingText) hintText.textContent='文本已展开 · 可点击带下划线的词/词组';
+};
+document.querySelectorAll('.state-btn').forEach(b=>b.onclick=()=>{
+  localStorage.setItem(stateKey(index),b.dataset.state);
+  document.querySelectorAll('.state-btn').forEach(x=>x.classList.toggle('selected',x===b));
+  if(b.dataset.state==='partial') hintText.textContent='建议再听一次；需要时再展开文本。';
+  if(b.dataset.state==='unclear') hintText.textContent='先重听 → 再看文本 → 判断卡在词汇还是声音识别。';
+  if(b.dataset.state==='understood') hintText.textContent='已记录首次理解情况。';
+});
+sentenceText.addEventListener('click',e=>{
+  const t=e.target.closest('.term'); if(!t)return;
+  showDict(Number(t.dataset.di));
+});
+function showDict(di){
+  const d=dictionary[di];
+  document.getElementById('dictEmpty').style.display='none';
+  const c=document.getElementById('dictContent');c.style.display='block';
+  const saved=localStorage.getItem('fe_saved_'+d.headword)==='1';
+  const sstate=localStorage.getItem(stateKey(index));
+  const listening=(sstate==='partial'||sstate==='unclear')?'激活中':'待验证';
+  c.innerHTML=`
+    <div class="dict-head">
+      <div><div class="dict-title">${escapeHtml(d.headword)}</div><div class="dict-type">${d.type}</div></div>
+      <button class="star ${saved?'saved':''}" id="starBtn">${saved?'★':'☆'}</button>
+    </div>
+    <div class="section"><div class="label">中文</div><div class="zh">${escapeHtml(d.zh)}</div></div>
+    <div class="section"><div class="label">English Definition</div><div class="en">${escapeHtml(d.en)}</div></div>
+    <div class="section"><div class="label">当前语境</div><div class="context">${escapeHtml(d.context)}</div><div style="color:var(--muted);font-size:12px;margin-top:6px">来源 · ${d.source_sentence} / Recording One</div></div>
+    <div class="section">
+      <div class="label">我的状态</div>
+      <div class="status-list">
+        <div class="status"><span>👁 阅读识别</span><span class="badge rec">已识别</span></div>
+        <div class="status"><span>👂 听力识别</span><span class="badge ${listening==='激活中'?'act':'un'}">${listening}</span></div>
+        <div class="status"><span>✍ 主动表达</span><span class="badge un">未训练</span></div>
+      </div>
+    </div>
+    <div class="dict-actions"><button class="outline-btn" id="hearContext">▶ 播当前句</button><button class="primary-btn" id="saveTerm">${saved?'已收藏':'收藏'}</button></div>`;
+  const toggleSave=()=>{
+    const now=localStorage.getItem('fe_saved_'+d.headword)==='1';
+    localStorage.setItem('fe_saved_'+d.headword,now?'0':'1');msg(now?'已取消收藏':'已收藏并记录学习状态');showDict(di);
+  };
+  document.getElementById('starBtn').onclick=toggleSave;
+  document.getElementById('saveTerm').onclick=toggleSave;
+  document.getElementById('hearContext').onclick=playCurrent;
+}
+document.getElementById('saveSentence').onclick=()=>{
+  const k=savedSentenceKey(index),now=localStorage.getItem(k)==='1';localStorage.setItem(k,now?'0':'1');render();msg(now?'已取消收藏':'句子已收藏');
+};
+document.getElementById('prevBtn').onclick=()=>{if(index>0){audio.pause();index--;render()}};
+document.getElementById('nextBtn').onclick=()=>{if(index<sentences.length-1){audio.pause();index++;render()}else msg('Recording One 已完成')};
+render();
+}
+</script>
+<script src="dictionary/dictionary-core.js"></script>
+<script src="dictionary/phrase-core.js"></script>
+<script src="vendor/pako-inflate.min.js"></script>
+<script src="dictionary-loader.js"></script>
+<script src="content-bundle.js"></script>
+<script src="focusenglish.js"></script>
+<script src="offline-core.js"></script>
+<script src="offline-manifest.js"></script>
+<script src="mobile.js"></script>
+</body>
+</html>

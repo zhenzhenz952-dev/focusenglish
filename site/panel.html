@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f7f5f0">
+  <meta name="description" content="FocusEnglish 随身英语面板：从一张词卡、一个句子开始，继续你的精听、练习与复习。">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="FocusEnglish">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>FocusEnglish · 你的英语日常</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
+  <link rel="stylesheet" href="panel.css">
+</head>
+<body class="fep-body">
+  <svg class="fep-symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <symbol id="fep-i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+    <symbol id="fep-i-swap" viewBox="0 0 24 24"><path d="M4 9a8 8 0 0 1 14-3l2 3M20 3v6h-6M20 15a8 8 0 0 1-14 3l-2-3M4 21v-6h6"/></symbol>
+    <symbol id="fep-i-headphones" viewBox="0 0 24 24"><path d="M4 13v-2a8 8 0 0 1 16 0v2M4 12H3v7h4v-7H4Zm16 0h1v7h-4v-7h3Z"/></symbol>
+    <symbol id="fep-i-book" viewBox="0 0 24 24"><path d="M12 5v15M3 4h4a7 7 0 0 1 5 2 7 7 0 0 1 5-2h4v15h-4a7 7 0 0 0-5 2 7 7 0 0 0-5-2H3V4Z"/></symbol>
+    <symbol id="fep-i-pencil" viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l5-1L21 7l-5-5L4 14v6Z"/></symbol>
+    <symbol id="fep-i-output" viewBox="0 0 24 24"><path d="M8 10h8m-8 4h5M20 4H4v14h5l3 3 3-3h5V4Z"/></symbol>
+    <symbol id="fep-i-chart" viewBox="0 0 24 24"><path d="M4 4v16h16M8 15l4-5 4 2 5-7"/></symbol>
+    <symbol id="fep-i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
+    <symbol id="fep-i-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></symbol>
+    <symbol id="fep-i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1 1m12 12 1 1M5 19l1-1M18 6l1-1"/></symbol>
+  </svg>
+
+  <a class="fep-skip" href="#fepMain">跳到学习面板</a>
+  <div class="fep-shell">
+    <header class="fep-header">
+      <a class="fep-brand" href="panel.html" aria-label="FocusEnglish 面板首页">
+        <img src="icons/icon.svg" width="42" height="42" alt="">
+        <span>FocusEnglish<small>你的随身英语角</small></span>
+      </a>
+      <div class="fep-header-tools">
+        <button class="fep-update" id="panelAppUpdate" type="button" hidden>更新应用</button>
+        <a class="fep-header-link" href="#offline"><span class="fep-dot" aria-hidden="true"></span>离线准备</a>
+      </div>
+    </header>
+
+    <main id="fepMain">
+      <section class="fep-intro" aria-labelledby="fepTitle">
+        <div>
+          <p class="fep-eyebrow">A LITTLE, EVERY DAY</p>
+          <h1 id="fepTitle">今天，也给英语一点时间。</h1>
+          <p class="fep-intro-copy">一个新词，一句练习。轻一点开始，慢慢积累。</p>
+        </div>
+        <div class="fep-date"><svg class="fep-icon" aria-hidden="true"><use href="#fep-i-sun"/></svg><time id="fepDate">今天</time></div>
+      </section>
+
+      <div class="fep-dashboard">
+        <section class="fep-card fep-word-card" aria-labelledby="fepWordHeading">
+          <div class="fep-card-top">
+            <h2 class="fep-card-label" id="fepWordHeading"><span class="fep-label-mark" aria-hidden="true">Aa</span>今日词卡<span class="fep-label-en" lang="en">DAILY WORD</span></h2>
+            <button class="fep-icon-button" id="fepNextWord" type="button" aria-label="换一个单词" title="换一个单词"><svg class="fep-icon" aria-hidden="true"><use href="#fep-i-swap"/></svg></button>
+          </div>
+          <div class="fep-word-content" aria-live="polite" aria-atomic="true">
+            <p class="fep-word" id="fepWord" lang="en">curious</p>
+            <div class="fep-word-meta"><span id="fepWordSound" lang="en">/ˈkjʊəriəs/</span><span id="fepWordType">adjective · 形容词</span></div>
+            <p class="fep-definition" id="fepWordDefinition" lang="en">wanting to know or learn about something</p>
+            <p class="fep-word-zh" id="fepWordTranslation" hidden>好奇的；求知的</p>
+          </div>
+          <button class="fep-reveal" id="fepRevealWord" type="button" aria-expanded="false" aria-controls="fepWordTranslation">查看中文</button>
+          <div class="fep-word-example"><span lang="en">TRY IT IN A SENTENCE</span><p id="fepWordExample" lang="en">Be curious about the small things around you.</p></div>
+        </section>
+
+        <section class="fep-card fep-sentence-card" aria-labelledby="fepSentenceHeading">
+          <div class="fep-card-top">
+            <h2 class="fep-card-label" id="fepSentenceHeading">每日练习句</h2>
+            <span class="fep-small-tag">原创</span>
+          </div>
+          <div class="fep-quote-mark" aria-hidden="true">“</div>
+          <p class="fep-sentence" id="fepSentenceText" lang="en">A little practice today can make tomorrow feel easier.</p>
+          <p class="fep-sentence-zh" id="fepSentenceTranslation" hidden>今天多练习一点，明天就可能轻松一些。</p>
+          <button class="fep-reveal" id="fepRevealSentence" type="button" aria-expanded="false" aria-controls="fepSentenceTranslation">查看中文</button>
+          <p class="fep-sentence-hint">读一遍，再用自己的话说一遍。</p>
+        </section>
+
+        <a class="fep-card fep-continue-card fep-link-card" id="fepContinueLink" href="study.html#learn" data-study>
+          <div class="fep-continue-body">
+            <span class="fep-card-label">继续学习<span class="fep-label-en" lang="en">KEEP GOING</span></span>
+            <h2 id="fepContinueTitle">给英语，留一点时间。</h2>
+            <p id="fepContinueCopy">选一份材料，从一个句子开始。</p>
+            <span class="fep-position" id="fepContinuePosition" hidden></span>
+            <span class="fep-continue-action">打开精听 <svg class="fep-icon" aria-hidden="true"><use href="#fep-i-arrow"/></svg></span>
+          </div>
+          <div class="fep-listening-art" aria-hidden="true"><div class="fep-art-orbit"></div><svg viewBox="0 0 90 90"><path d="M22 50V40a23 23 0 0 1 46 0v10"/><rect x="17" y="46" width="12" height="23" rx="6"/><rect x="61" y="46" width="12" height="23" rx="6"/><path d="M36 45v10m9-18v26m9-18v10"/></svg><span class="fep-art-star">✦</span></div>
+        </a>
+
+        <section class="fep-card fep-library-card" aria-labelledby="fepLibraryHeading">
+          <div class="fep-card-top"><h2 class="fep-card-label" id="fepLibraryHeading">你的词句<span class="fep-label-en" lang="en">MY COLLECTION</span></h2><svg class="fep-icon" aria-hidden="true"><use href="#fep-i-book"/></svg></div>
+          <div class="fep-collection-counts"><div><strong id="fepSavedWords">0</strong><span>收藏单词</span></div><span class="fep-count-divider" aria-hidden="true"></span><div><strong id="fepSavedPhrases">0</strong><span>收藏短语</span></div></div>
+          <p class="fep-collection-note" id="fepSavedNote">遇到喜欢的词，把它收藏在学习页里。</p>
+          <a class="fep-text-link" href="study.html#library" data-study>打开词句库 <svg class="fep-icon" aria-hidden="true"><use href="#fep-i-arrow"/></svg></a>
+        </section>
+      </div>
+
+      <section class="fep-tools" aria-labelledby="fepToolsHeading">
+        <div class="fep-section-heading"><h2 id="fepToolsHeading">找到今天的节奏</h2><a href="study.html#today" data-study>今日任务 <span aria-hidden="true">↗</span></a></div>
+        <div class="fep-tools-grid">
+          <a class="fep-tool" href="study.html#learn" data-study><span class="fep-tool-icon fep-tool-blue"><svg class="fep-icon" aria-hidden="true"><use href="#fep-i-headphones"/></svg></span><span><strong>精听与阅读</strong><small>听进去，也读明白</small></span><span class="fep-tool-arrow" aria-hidden="true">↗</span></a>
+          <a class="fep-tool" href="study.html#practice" data-study><span class="fep-tool-icon fep-tool-peach"><svg class="fep-icon" aria-hidden="true"><use href="#fep-i-pencil"/></svg></span><span><strong>真题练习</strong><small>把学到的用起来</small></span><span class="fep-tool-arrow" aria-hidden="true">↗</span></a>
+          <a class="fep-tool" href="study.html#output" data-study><span class="fep-tool-icon fep-tool-sage"><svg class="fep-icon" aria-hidden="true"><use href="#fep-i-output"/></svg></span><span><strong>复习与表达</strong><small>让熟悉变成会用</small></span><span class="fep-tool-arrow" aria-hidden="true">↗</span></a>
+          <a class="fep-tool" href="study.html#progress" data-study><span class="fep-tool-icon fep-tool-lilac"><svg class="fep-icon" aria-hidden="true"><use href="#fep-i-chart"/></svg></span><span><strong>学习记录</strong><small id="fepPracticeNote">看看自己的学习记录</small></span><span class="fep-tool-arrow" aria-hidden="true">↗</span></a>
+        </div>
+      </section>
+
+      <section class="fep-offline" id="offline" aria-labelledby="fepOfflineHeading">
+        <span class="fep-offline-icon"><svg class="fep-icon" aria-hidden="true"><use href="#fep-i-download"/></svg></span>
+        <div class="fep-offline-copy"><h2 id="fepOfflineHeading">把英语带在身边</h2><p id="offlineSummary" role="status" aria-live="polite">正在检查这台设备的离线资源…</p><small>联网可直接学习。需要离线使用时，可选导入资源包。</small></div>
+        <button class="fep-button fep-button-light" id="openImport" type="button" aria-haspopup="dialog" aria-controls="importDialog">导入离线包 <svg class="fep-icon" aria-hidden="true"><use href="#fep-i-arrow"/></svg></button>
+      </section>
+
+      <footer class="fep-footer"><span>FocusEnglish <span aria-hidden="true">·</span> 慢慢来，每天一点。</span><span>Safari 分享 → 添加到主屏幕</span></footer>
+      <noscript><p class="fep-noscript">开启 JavaScript 后可切换词卡、查看本机收藏和导入离线资源。上方学习链接仍可打开。</p></noscript>
+    </main>
+  </div>
+
+  <nav class="fep-bottom-nav" aria-label="主导航"><div>
+    <a href="panel.html" aria-current="page"><svg class="fep-icon" aria-hidden="true"><use href="#fep-i-grid"/></svg><span>面板</span></a>
+    <a href="study.html#today" data-study><svg class="fep-icon" aria-hidden="true"><use href="#fep-i-sun"/></svg><span>今日</span></a>
+    <a href="study.html#learn" data-study><svg class="fep-icon" aria-hidden="true"><use href="#fep-i-headphones"/></svg><span>学习</span></a>
+    <a href="study.html#practice" data-study><svg class="fep-icon" aria-hidden="true"><use href="#fep-i-pencil"/></svg><span>练习</span></a>
+    <a href="study.html#library" data-study><svg class="fep-icon" aria-hidden="true"><use href="#fep-i-book"/></svg><span>词句</span></a>
+  </div></nav>
+
+  <dialog class="fep-import-dialog" id="importDialog" aria-labelledby="fepImportTitle" aria-describedby="fepImportDescription">
+    <div class="fep-dialog-top"><div><p class="fep-eyebrow">TAKE IT WITH YOU</p><h2 id="fepImportTitle">准备好，随时学。</h2></div><button class="fep-dialog-close" id="closeImport" type="button" aria-label="关闭离线包导入">×</button></div>
+    <div class="fep-dialog-body">
+      <p id="fepImportDescription">把已准备好的 FocusEnglish 离线 ZIP 保存到 iPhone“文件”，再选择它导入。这会保存题库、完整词典和音频，学习记录继续保留在这台设备上。</p>
+      <ol class="fep-import-steps"><li><span>1</span><div><strong>第一次，联网打开</strong><p>先用 Safari 打开本网页，点“分享”→“添加到主屏幕”。无需 Apple 开发者账号。</p></div></li><li><span>2</span><div><strong>从“文件”选择离线包</strong><p>选择已准备好的 .zip 文件，保持压缩包原样。导入会检查文件，已保存的完整资源会跳过。</p></div></li><li><span>3</span><div><strong>导入时，保持在前台</strong><p>请先不要锁屏或切换应用。需要中断时点暂停，下次选择同一个 ZIP 可以继续。</p></div></li></ol>
+      <div class="fep-file-picker"><input id="offlinePackFile" type="file" accept=".zip,application/zip" hidden><button class="fep-button fep-button-primary" id="chooseOfflinePack" type="button"><svg class="fep-icon" aria-hidden="true"><use href="#fep-i-download"/></svg>从“文件”选择离线包</button><p id="packFileName">尚未选择文件</p></div>
+      <progress class="fep-import-progress" id="packImportProgress" max="1" value="0" aria-label="离线包导入进度" hidden></progress>
+      <p class="fep-import-status" id="packImportStatus" role="status" aria-live="polite">选择文件后开始检查并导入。</p>
+      <button class="fep-button fep-button-outline" id="cancelPackImport" type="button" hidden>暂停导入</button>
+      <p class="fep-dialog-note">导入完成后，以面板显示的实际离线状态为准。更换设备或清理网站数据前，请先到学习页导出学习记录备份。</p>
+    </div>
+  </dialog>
+
+  <script src="offline-core.js"></script>
+  <script src="panel-manifest.js"></script>
+  <script src="pack-reader.js"></script>
+  <script src="panel.js"></script>
+  <script src="panel-offline.js"></script>
+</body>
+</html>
