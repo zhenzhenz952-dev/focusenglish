@@ -1,0 +1,2 @@
+# Preserve the exact bytes declared by the offline resource catalogue.
+/site/** -text
