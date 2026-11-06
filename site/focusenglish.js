@@ -117,12 +117,26 @@ As a society, we idolize the concept of “losing friends on the road to success
   function getMaterialProgress() {
     return state.materialProgress[MATERIAL.id] || {currentSentenceId:'S01', lastOpenedAt:null};
   }
+  function canonicalSentenceId(sentenceId) {
+    return sentences.find(sentence => sentence.id === sentenceId || sentence.legacySentenceIds?.includes(sentenceId))?.id || sentenceId;
+  }
   function getSentenceProgress(sentenceId) {
-    return state.sentenceProgress[sentenceKey(sentenceId)] || {materialId:MATERIAL.id, sentenceId, understandingStatus:null, transcriptVisible:false, saved:false, savedAt:null, updatedAt:null};
+    sentenceId = canonicalSentenceId(sentenceId);
+    const current = state.sentenceProgress[sentenceKey(sentenceId)];
+    const aliases = sentences.find(sentence => sentence.id === sentenceId)?.legacySentenceIds || [];
+    if (current && aliases.every(id => current.mergedLegacySentenceIds?.includes(id))) return current;
+    const previous = [current, ...aliases.map(id => state.sentenceProgress[sentenceKey(id)])].filter(Boolean).sort((a,b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
+    if (previous.length) {
+      const saved = previous.filter(item => item.saved).sort((a,b) => (b.savedAt || '').localeCompare(a.savedAt || ''));
+      return {...previous[0], sentenceId, saved:Boolean(saved.length), savedAt:saved[0]?.savedAt || null,
+        understandingStatus:previous.find(item => item.understandingStatus)?.understandingStatus || null, mergedLegacySentenceIds:aliases};
+    }
+    return {materialId:MATERIAL.id, sentenceId, understandingStatus:null, transcriptVisible:false, saved:false, savedAt:null, updatedAt:null};
   }
   function ensureSentenceProgress(sentenceId) {
+    sentenceId = canonicalSentenceId(sentenceId);
     const key = sentenceKey(sentenceId);
-    if (!state.sentenceProgress[key]) state.sentenceProgress[key] = getSentenceProgress(sentenceId);
+    state.sentenceProgress[key] = getSentenceProgress(sentenceId);
     return state.sentenceProgress[key];
   }
   function ensureItem(d) {
@@ -378,6 +392,7 @@ As a society, we idolize the concept of “losing friends on the road to success
     hintText.textContent = showing ? '点击任意单词；拖选两个或更多连续单词可查询词组。' : 'Hint 尚未展开';
     sentenceText.innerHTML = renderSentenceText(sentence.text);
     evidence.innerHTML = sentence.question_evidence.length ? `<span class="evidence">⚑ ${sentence.question_evidence.map(q => `Q${q}`).join(' / ')} Evidence</span>` : '';
+    if (sentence.timingStatus) evidence.innerHTML += '<span class="evidence" style="margin-left:8px">此句音频定位待复核，可连听上下句</span>';
     document.querySelectorAll('.state-btn').forEach(button => button.classList.toggle('selected', button.dataset.state === progress.understandingStatus));
     byId('saveSentence').textContent = progress.saved ? '★ 已收藏句子' : '♡ 收藏句子';
     playBtn.textContent = '▶';
@@ -397,6 +412,16 @@ As a society, we idolize the concept of “losing friends on the road to success
     });
   };
   const listeningMaterialForId = id => learnListeningMaterials().find(item => item.id === id) || null;
+  function listeningEvidenceForQuestion(question) {
+    const exam = PRACTICE_EXAMS.find(item => item.publishedModules?.listening?.questions?.some(candidate => candidate.id === question.id));
+    if (!exam) return null;
+    const number = Number(question.number || question.id.match(/(?:_L|Q)(\d+)$/)?.[1]);
+    for (const material of learnListeningMaterials().filter(item => item.examId === exam.examId)) {
+      const evidenceSentences = material.sentences.filter(item => item.question_evidence?.includes(number));
+      if (evidenceSentences.length) return {materialId:material.id, sentence:evidenceSentences[0], evidenceSentences};
+    }
+    return null;
+  }
   function activateListeningMaterial(material) {
     if (!material) return false;
     const changed = MATERIAL.id !== material.id;
@@ -504,7 +529,7 @@ As a society, we idolize the concept of “losing friends on the road to success
     audio.currentTime = Math.max(0, sentence.audio_start_local_sec); audio.playbackRate = Number(speed.value); audio.play().catch(() => { playBtn.textContent = '▶'; window.dispatchEvent(new CustomEvent('focus:audio-error')); }); playBtn.textContent = '❚❚';
   }
   function playSentence(sentenceId) {
-    const targetIndex = sentences.findIndex(s => s.id === sentenceId); if (targetIndex < 0) return;
+    const targetIndex = sentences.findIndex(s => s.id === canonicalSentenceId(sentenceId)); if (targetIndex < 0) return;
     index = targetIndex; playCurrent();
   }
   function playFull() {
@@ -586,7 +611,7 @@ As a society, we idolize the concept of “losing friends on the road to success
   }
   function lastEncounter(item) { return item.encounterIds.map(id => state.encounters[id]?.lastSeenAt || '').sort().at(-1) || item.createdAt; }
   function renderOverview() {
-    const items = Object.values(state.libraryItems); const sentencesSaved = Object.values(state.sentenceProgress).filter(s => s.materialId === MATERIAL.id && s.saved).length;
+    const items = Object.values(state.libraryItems); const sentencesSaved = sentences.map(sentence => getSentenceProgress(sentence.id)).filter(s => s.saved).length;
     const activating = items.filter(item => state.masteryStates[item.itemId]?.listening === 'activating').length; const saved = items.filter(item => item.saved).length;
     byId('overview').innerHTML = [['Words',items.filter(i => i.type === 'word').length],['Phrases',items.filter(i => i.type === 'phrase').length],['Sentences',sentencesSaved],['听力激活中',activating],['已收藏',saved]].map(([label,value]) => `<div class="card metric"><div class="metric-label">${label}</div><div class="metric-value">${value}</div></div>`).join('');
   }
@@ -604,7 +629,7 @@ As a society, we idolize the concept of “losing friends on the road to success
       target.querySelectorAll('[data-mistake]').forEach(button => button.onclick = () => { selectedLibraryKey = `mistake:${button.dataset.mistake}`; renderLibraryList(); renderLibraryDetail(); }); return;
     }
     if (libraryTab === 'sentence') {
-      const entries = Object.values(state.sentenceProgress).filter(p => p.materialId === MATERIAL.id && p.saved).sort((a,b) => (b.savedAt || '').localeCompare(a.savedAt || ''));
+      const entries = sentences.map(sentence => getSentenceProgress(sentence.id)).filter(p => p.saved).sort((a,b) => (b.savedAt || '').localeCompare(a.savedAt || ''));
       target.innerHTML = entries.length ? entries.map(p => { const s = sentences.find(x => x.id === p.sentenceId); const active = selectedLibraryKey === sentenceKey(p.sentenceId); return `<button class="library-item ${active ? 'active' : ''}" data-sentence="${p.sentenceId}"><div class="item-row"><span class="item-name">${p.sentenceId} · Sentence ${s.order}</span><span>${s.question_evidence.length ? '⚑' : ''}</span></div><div class="item-zh">${escapeHtml(s.text)}</div><div class="item-meta"><span class="mini-badge">${statusLabel(p.understandingStatus || 'not_started')}</span><span>收藏 ${shortDate(p.savedAt)}</span></div></button>`; }).join('') : '<div class="list-empty">还没有收藏句子。<br>在 Learn 点击“收藏句子”后会出现在这里。</div>';
       target.querySelectorAll('[data-sentence]').forEach(button => button.onclick = () => { selectedLibraryKey = sentenceKey(button.dataset.sentence); renderLibraryList(); renderLibraryDetail(); }); return;
     }
@@ -615,14 +640,22 @@ As a society, we idolize the concept of “losing friends on the road to success
   function renderLibraryDetail() {
     const detail = byId('libraryDetail');
     if (libraryTab === 'mistakes') {
-      const id = String(selectedLibraryKey || '').replace('mistake:', ''); const question = [...DATA.questions, ...READING_QUESTIONS].find(item => item.id === id);
+      const id = String(selectedLibraryKey || '').replace('mistake:', ''); const question = allPracticeQuestions().find(item => item.id === id);
       if (!question) { detail.innerHTML = '<div class="detail-empty">选择一道错题，查看正确答案并回到对应精学材料。</div>'; return; }
-      const answer = question.choices[question.answer]; const listening = question.evidence_sentence_ids?.[0];
+      const answer = question.choices[question.answer];
+      const origin = PRACTICE_EXAMS.find(exam => Object.values(exam.publishedModules || {}).some(body => body.questions?.some(item => item.id === id)));
+      const mode = Object.keys(origin?.publishedModules || {}).find(key => origin.publishedModules[key].questions?.some(item => item.id === id));
+      const listening = mode === 'listening';
+      const evidence = listeningEvidenceForQuestion(question);
       detail.innerHTML = `<div class="detail-top"><div><div class="detail-title">${question.id}</div><div class="detail-type">${listening ? 'Listening' : 'Reading'}</div></div></div><div class="detail-section"><div class="en">${escapeHtml(question.prompt)}</div></div><div class="detail-section"><div class="label">正确答案</div><div class="zh">${question.answer}. ${escapeHtml(answer)}</div></div><div class="detail-section"><button class="primary-btn" id="reviewMistake">↗ 回到 ${listening ? 'Learn 精听' : 'Learn 精读'}</button></div>`;
-      byId('reviewMistake').onclick = () => listening ? goToLearn(listening) : goToReadingLearn(); return;
+      byId('reviewMistake').onclick = () => {
+        if (evidence) openListeningMaterial(evidence.materialId, evidence.sentence.id);
+        else if (mode === 'reading') goToReadingLearn(origin.examId, question.passageId);
+        else { practiceMode = mode || 'listening'; goToPractice(question.id); }
+      }; return;
     }
     if (libraryTab === 'sentence') {
-      const progress = Object.values(state.sentenceProgress).find(p => sentenceKey(p.sentenceId) === selectedLibraryKey);
+      const progress = sentences.map(sentence => getSentenceProgress(sentence.id)).find(p => sentenceKey(p.sentenceId) === selectedLibraryKey);
       if (!progress) { detail.innerHTML = '<div class="detail-empty">选择一个收藏句子，查看理解状态、证据题与原句音频。</div>'; return; }
       const sentence = sentences.find(s => s.id === progress.sentenceId);
       detail.innerHTML = `<div class="detail-top"><div><div class="detail-title">${sentence.id}</div><div class="detail-type">${MATERIAL.source}</div></div><span>${sentence.question_evidence.length ? `⚑ ${sentence.question_evidence.map(q => `Q${q}`).join(' / ')}` : ''}</span></div><div class="detail-section"><div class="label">Sentence</div><div class="en">${escapeHtml(sentence.text)}</div></div><div class="detail-section"><div class="label">当时理解状态</div><span class="badge ${statusClass(progress.understandingStatus)}">${statusLabel(progress.understandingStatus || 'not_started')}</span><div style="font-size:12px;color:var(--muted);margin-top:8px">收藏于 ${fullDate(progress.savedAt)}</div></div><div class="detail-section"><div class="detail-actions"><button class="outline-btn" data-play-sentence="${sentence.id}">▶ 播放原句</button><button class="primary-btn" data-deep-link="${sentence.id}">↗ 回到精听</button></div></div>`;
@@ -763,7 +796,8 @@ As a society, we idolize the concept of “losing friends on the road to success
       if (submitted && selected && letter !== question.answer) classes.push('wrong');
       return `<button class="${classes.join(' ')}" data-choice="${letter}" ${submitted ? 'disabled' : ''}><span class="choice-letter">${letter}</span><span>${escapeHtml(text)}</span></button>`;
     }).join('');
-    const listeningEvidence = question.evidence_sentence_ids?.[0] ? sentences.find(sentence => sentence.id === question.evidence_sentence_ids[0]) : null;
+    const listeningTarget = practiceMode === 'listening' ? listeningEvidenceForQuestion(question) : null;
+    const listeningEvidence = listeningTarget ? {...listeningTarget.sentence, text:listeningTarget.evidenceSentences.map(sentence => sentence.text).join(' ')} : null;
     const canDeepLinkReading = Boolean(readingPassage) && practiceMode === 'reading';
     const review = listeningEvidence ? `<div class="practice-evidence"><div class="label">Evidence · ${listeningEvidence.id}</div><div>${escapeHtml(listeningEvidence.text)}</div><button class="outline-btn" id="goEvidence" style="margin-top:11px">↗ 回到 Learn 精听</button></div>` : `<div class="practice-evidence"><div class="label">Reading Material</div><div>${canDeepLinkReading ? `本题来自 ${escapeHtml(activePracticeExam().title)} · ${escapeHtml(readingPassage?.label || 'Reading')}。` : '本题原文已随该已发布试卷包保存；精读跳转将在对应材料导入 Learn 后启用。'}</div>${canDeepLinkReading ? '<button class="outline-btn" id="goEvidence" style="margin-top:11px">↗ 回到 Learn 精读</button>' : ''}</div>`;
     const result = submitted ? `<div class="practice-result ${progress.isCorrect ? 'good' : 'bad'}">${progress.isCorrect ? '回答正确。' : '这题不对。'} 正确答案：<strong>${question.answer}. ${escapeHtml(correctChoice)}</strong></div>${review}` : '';
@@ -777,7 +811,7 @@ As a society, we idolize the concept of “losing friends on the road to success
       byId('submitPractice').onclick = () => { const selected = practiceProgress(question.id).selected; if (!selected) { msg('请选择一个答案'); return; } savePractice(question, {submittedAt:now(), isCorrect:selected === question.answer}); renderPractice(); };
     }
     byId('practiceArea').querySelectorAll('[data-practice-mode]').forEach(button => button.onclick = () => { practiceMode = button.dataset.practiceMode; practiceIndex = 0; goToPractice(); });
-    const evidenceButton = byId('goEvidence'); if (evidenceButton) evidenceButton.onclick = () => listeningEvidence ? goToLearn(listeningEvidence.id) : goToReadingLearn(activePracticeExam().examId, readingPassage?.id);
+    const evidenceButton = byId('goEvidence'); if (evidenceButton) evidenceButton.onclick = () => listeningTarget ? openListeningMaterial(listeningTarget.materialId, listeningEvidence.id) : goToReadingLearn(activePracticeExam().examId, readingPassage?.id);
     byId('practiceBack').onclick = () => { if (practiceIndex > 0) { practiceIndex -= 1; goToPractice(questions[practiceIndex].id); } };
     const nextButton = byId('nextPractice'); if (nextButton) nextButton.onclick = () => { practiceIndex = practiceIndex < questions.length - 1 ? practiceIndex + 1 : 0; goToPractice(questions[practiceIndex].id); };
   }
@@ -821,7 +855,7 @@ As a society, we idolize the concept of “losing friends on the road to success
     byId('todayGrid').querySelectorAll('[data-today-task]').forEach(button => button.onclick = () => tasks[Number(button.dataset.todayTask)].action());
   }
   function renderProgress() {
-    const sentenceStates = Object.values(state.sentenceProgress || {}).filter(progress => progress.materialId === MATERIAL.id);
+    const sentenceStates = sentences.map(sentence => getSentenceProgress(sentence.id));
     const items = Object.values(state.libraryItems || {}); const mastery = Object.values(state.masteryStates || {});
     const practice = allPracticeQuestions().map(question => practiceProgress(question.id));
     const listeningPractice = PRACTICE_EXAMS.flatMap(exam => moduleContentFor(exam, 'listening')?.questions || []).map(question => practiceProgress(question.id)); const readingPractice = PRACTICE_EXAMS.flatMap(exam => moduleContentFor(exam, 'reading')?.questions || []).map(question => practiceProgress(question.id)); const mistakes = practice.filter(progress => progress.submittedAt && progress.isCorrect === false).length;
@@ -879,7 +913,7 @@ As a society, we idolize the concept of “losing friends on the road to success
     const materialId = isListeningLearn ? decodeURIComponent(parts[1] || '') : '';
     if (isListeningLearn && !activateListeningMaterial(listeningMaterialForId(materialId))) { goToLearnHub(); return; }
     const sentenceId = isListeningLearn ? decodeURIComponent(parts[2] || '') : '';
-    const target = sentences.findIndex(s => s.id === sentenceId); if (target >= 0) index = target;
+    const target = sentences.findIndex(s => s.id === canonicalSentenceId(sentenceId)); if (target >= 0) index = target;
     renderLearn();
   }
 
